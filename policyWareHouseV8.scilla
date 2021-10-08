@@ -1,0 +1,253 @@
+  scilla_version 0
+
+  (* Contract: InsurancePolicyWarehouse by    Chin Leong                                    *)
+  (*                                          Eugene                                        *)
+  (*                                          Mark                                          *)
+  (*                                          Raakhee                                       *)
+  (* Proudly adapted from the BookStore project (o_o)                                       *)
+
+  (* This is a demo of a CRUD app where insurance policies are stored in immutable records. *)
+  (* Only owner of the InsurancePolicyWarehouse, i.e. the Administrator, can add employees. *)
+  (* All employees will have read & write access to create and update insurance policies in *)
+  (* the policyList with the parameters, policyID, productName, and policyHolderName.       *)
+
+  (* For this demo, a simple access control is incorporated where all employees can         *)
+  (* access the records. In actual contracts, the actions and identities of the employees   *)
+  (* should be captured for contract safety and security.                                   *)
+
+  (* MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMMMMWXOOXWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMN0xollolllokKWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMNOdllodkKNMMNKkolloxKNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMWo..,oONMMMMMMMMMWKkollox0XNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMWl;kOdllodONWMMMMMMMMWXOdlllox0NWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMWl:KMMWXOdllldOXWMMMMMMMMWWXOdllldOXWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMWl:KMMMMMMWN0dolldOXWMMMMMMMMMWN0dolldOXWMMMMMMMMMMMMMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMNl;0MMMMMMMMMMWN0xollokKWMMMMMMMMMMN0xollokKWMMMMMMMMMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMWOllodOXWMMMMMMMMMMNKxollodkKWMMMMMMMMMNKxollokKWMMMMMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMWNOdolldOXWMMMMMMMMMMWKkdollox0NMMMMMMMMMWKkolllxXWMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMWN0xollokKWMMMMMMMMMMMWXkdllox0NWMMMMMWXOo;'.lNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMMMMMMN0xollokKWMMMMMMMMMMMWXOdllldO0kollodO0:cNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWKkollox0NMMMMMMMMMMMWXOd;'cx0NMMMXccNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWKkolloox0NWMMMMMMMMWo;0MMMMMMXccNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMW0l,..l0WMMMMMMMWo;0MMMMMW0;cNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWN0xollodOXWMMMMMMMMWo;0MN0xolloOWMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWNOdolldOXWMMMMMMMMMMMMMWl.colldkKNWWMMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMMMMMMWXOdllldOXWMMMMMMMMMMMMMWXOdlccdOXWNKko:dNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMMWXOdllod0NWMMMMMMMMMMMMMWNOdllox0NWX0xolloo,cNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMWXOdllox0NWMMMMMMMMMMMMMWN0dllld0NWMM0lcodOXWMXccNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMWKdllox0NMMMMMMMMMMMMMMN0xoolldONWMMMMMWo,OMMMMMMX:cNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMWl,kNMMMMMMMMMMMMMMN0xolldxOXWMMMMMMMMMWo;0MMMMMMX:cNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMWl:KMMMMMMMMMMMN0xolldOXWMMMMMMMMMMMMMMWo;0MMMMMMXccNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMWl:KMMMMMMMMW0l;;lkXWMMMMMMMMMMMMMMMMMMWo;0MMMMMMXccNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMWl:KMMMMMMMMWXxlclokKWMMMMMMMMMMMMMMMMMWo;0MMMMMMXccNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMWl,xXWMMMMMMMMMMWKkollox0NWMMMMMMMMMMMMWo;0MMMMMMXccNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMKxolldkKWMMMMMMMMMMWKkdlllox0NMMMMMMMMWo;0MMMMMMXccNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMN0xollokKNMMMMMMMMMMWX0Odllod0NWMMMWo;0MMMMMMXccNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMMMWKkollox0NWMMMMMMMMMMWXOdllldOXNo;0MMMMMMXccNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMMMMMMMWXkdllod0NWMMMMMMMMMMWN0doll',0MMMMMMXccNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWXOdllldOXWWMMMMMMMMMMN0;,0MMMMMMNccNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWN0xollldkKWMMMMMMMWo;0MMMMMMXccNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNX0xollokKWMMMWo;0MMMARKd,lNMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWKkollox0Xo;0XOdollokXMMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWXkdll,.:lodOXWMMMMMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWXOkKNWMMMMMMMMMMMMMMMMMMMMMMMM *)
+  (* MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM *)
+
+  (***************************************************************)
+  (*                     Associated library                      *)
+  (***************************************************************)
+  library InsurancePolicyWarehouse
+
+  let one_msg =
+    fun (msg: Message) =>
+    let nil_msg = Nil {Message} in
+    Cons {Message} msg nil_msg
+
+  (* error codes library *)
+  type Error =
+  (* | CodeSuccess *)
+  | CodePolicyNotFound
+  | CodeNotAuthorized
+  | CodeInvalidParams
+  | CodePolicyIDExist
+  | CodeNotEmployee
+
+  let make_error =
+  fun (result : Error) =>
+    let result_code =
+      match result with
+          (* | CodeSuccess         => Int32 -0 *)
+          | CodePolicyNotFound  => Int32 -1
+          | CodeNotAuthorized   => Int32 -2
+          | CodeInvalidParams   => Int32 -3
+          | CodePolicyIDExist   => Int32 -4
+          | CodeNotEmployee     => Int32 -5
+      end
+    in
+    { _exception : "Error"; code : result_code }
+
+
+  (***************************************************************)
+  (*             INSURANCE POLICY WAREHOUSE CONTRACT             *)
+  (***************************************************************)
+
+
+  contract InsurancePolicyWarehouse (
+      owner: ByStr20,
+      warehouseName: String
+  )
+
+  (* Employee data consists of three attributes: ByStr20, Name and typeOfEmployee  *)
+  (* Uint32 employeeType; // 0: Agent, 1: Manager, 2: Director                     *)
+
+  field employees: Map ByStr20 (Pair (String) (Uint32))
+                  = Emp ByStr20 (Pair (String) (Uint32))
+
+  (* lastpolicyID: last Policy ID issued *)
+  field lastpolicyID: Option Uint32 = None {Uint32}
+
+  (* insurancePolicy data consists of three attributes: policyID, productName and policyHolderName*)
+  (*Examples of productName Eldershield MyWholeLifePlan MyTermPlan MyShieldPlan*)
+  (*Examples of policyHolderName term wholelife endowment health*)
+
+  (* policyList will store a Map of policies by productName *)
+  field policyList: Map Uint32 (Pair (String) (String))
+                      = Emp Uint32 (Pair (String) (String))
+
+  (** Emit Errors **)
+  procedure ThrowError(err : Error)
+    e = make_error err;
+    throw e
+  end
+
+  (* =============== transitions =============== *)
+
+  transition addEmployee(name: String, addr: ByStr20, employeeType: Uint32)
+
+      (* Access control: Checking if sender is the owner of the Contract *)
+      is_authorized = builtin eq _sender owner;
+      match is_authorized with
+      | True =>
+          (* Only the owner can add employees *)
+          (* Check if employeeType is valid.  *)
+          valid_type = let three = Uint32 3 in
+                          builtin lt employeeType three;
+
+          match valid_type with
+          | True =>
+              (* First build the pair ADT *)
+              p = Pair {(String) (Uint32)} name employeeType;
+              employees[addr] := p
+          | False =>
+              (* Code for the employeeType is invalid *)
+              err = CodeInvalidParams;
+              ThrowError err
+          end
+      | False =>
+          (* Unauthorized transaction *)
+          err = CodeNotAuthorized;
+          ThrowError err
+      end
+  end
+
+  (* Allows _sender to add an insurancePolicy to the InsurancePolicyWarehouse              *)
+  (* @param: productName, policyHolderName, policyID                                        *)
+
+  transition addPolicy(productName: String, policyHolderName: String, policyID: Uint32)
+
+      employed <- employees;
+      oneOfUs = builtin contains employed _sender;
+      match oneOfUs with
+      | True =>
+
+        policies <- policyList;
+        (* new_policyID = let one = Uint32 1 in builtin add last_policyID one;*)
+
+        policyExist = builtin contains policies policyID;
+        match policyExist with
+          | True =>
+             err = CodePolicyIDExist;
+             ThrowError err
+          | False =>
+            (* Create a new insurancePolicy model, which is a Pair of productName and policyHolderName *)
+            new_policy = Pair {(String) (String)} productName policyHolderName;
+
+            (* Add the new insurancePolicy to the policyList Map, with policyID as the key            *)
+            policyList[policyID] := new_policy;
+
+            inputId = Some {Uint32} policyID;
+            lastpolicyID := inputId
+         end
+
+      |False =>
+          (* _sender is not an employee. *)
+          err = CodeNotEmployee;
+          ThrowError err
+      end
+  end
+
+  (* Allows _sender to remove an insurancePolicy from the InsurancePolicyWarehouse         *)
+
+  transition removePolicy(policyID: Uint32)
+
+      employed <- employees;
+      oneOfUs = builtin contains employed _sender;
+
+      match oneOfUs with
+      | True =>
+        policies <- policyList;
+        exist = builtin contains policies policyID;
+
+        match exist with
+        | False =>
+            (* policyID is not found in the records. *)
+            err = CodePolicyNotFound;
+            ThrowError err
+        | True =>
+            delete policyList[policyID]
+        end
+
+      |False =>
+          (* _sender is not an employee. *)
+          err = CodeNotEmployee;
+          ThrowError err
+
+      end
+
+  end
+
+  (* Allows a `_sender` to update an insurancePolicy from the InsurancePolicyWarehouse     *)
+  (* For this demo, access control is not incorporated. In actual contracts,               *)
+  (* proper access controls should be used to allow only authorised people to add records. *)
+
+  transition updatePolicy(policyID: Uint32, productName: String, policyHolderName: String)
+
+      employed <- employees;
+      oneOfUs = builtin contains employed _sender;
+
+      match oneOfUs with
+      | True =>
+        policies <- policyList;
+        exist = builtin contains policies policyID;
+
+        match exist with
+        | False =>
+            (* policyID is not found in the records. *)
+            err = CodePolicyNotFound;
+            ThrowError err
+        | True =>
+            (* constructs an Insurance Policy model  *)
+            new_policy = Pair {(String) (String)} productName policyHolderName;
+
+            (* Add the new insurance policy to the policy_list Map, with policyID as the key*)
+            policyList[policyID] := new_policy
+          end
+
+      |False =>
+          (* _sender is not an employee. *)
+          err = CodeNotEmployee;
+          ThrowError err
+      end
+
+  end
